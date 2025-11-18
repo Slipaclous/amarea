@@ -43,7 +43,8 @@ export async function handleResourceGet(request: NextRequest, resourceKey: strin
       );
     }
 
-    const items = await resource.findMany({
+    // Type assertion to work around Prisma union type issue
+    const items = await (resource as any).findMany({
       orderBy: { order: 'asc' }
     });
 
@@ -75,7 +76,8 @@ export async function handleResourcePost(request: NextRequest, resourceKey: stri
     }
 
     const body = await request.json();
-    const item = await resource.create({ data: body });
+    // Type assertion here as well
+    const item = await (resource as any).create({ data: body });
 
     return NextResponse.json(item);
   } catch (error: any) {
@@ -89,7 +91,3 @@ export async function handleResourcePost(request: NextRequest, resourceKey: stri
     );
   }
 }
-
-
-
-
