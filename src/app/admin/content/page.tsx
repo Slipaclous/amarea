@@ -251,7 +251,7 @@ export default function ContentEditor() {
   const [saving, setSaving] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
 
-  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const currentPage = pageConfigs[activePage];
   const currentSections = currentPage.sections;
 
