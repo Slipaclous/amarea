@@ -1,14 +1,20 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
+import { fetchGallery } from '@/lib/api';
 
 export default function Gallery() {
-  const [selectedImage, setSelectedImage] = useState<number | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [galleryImages, setGalleryImages] = useState<any[]>([]);
 
-  const galleryImages = [
+  useEffect(() => {
+    fetchGallery().then(setGalleryImages);
+  }, []);
+
+  const defaultGalleryImages = [
     {
       id: 1,
       src: '/api/placeholder/600/400',
@@ -75,12 +81,13 @@ export default function Gallery() {
     }
   ];
 
-  const categories = ['Tous', 'Cérémonie', 'Décoration', 'Réception', 'Détails'];
+  const displayImages = galleryImages.length > 0 ? galleryImages : defaultGalleryImages;
+  const categories = ['Tous', ...Array.from(new Set(displayImages.map(img => img.category)))];
   const [activeCategory, setActiveCategory] = useState('Tous');
 
   const filteredImages = activeCategory === 'Tous' 
-    ? galleryImages 
-    : galleryImages.filter(img => img.category === activeCategory);
+    ? displayImages 
+    : displayImages.filter(img => img.category === activeCategory);
 
   const nextImage = () => {
     if (selectedImage !== null) {
@@ -98,7 +105,7 @@ export default function Gallery() {
     }
   };
 
-  const selectedImageData = galleryImages.find(img => img.id === selectedImage);
+  const selectedImageData = displayImages.find(img => img.id === selectedImage);
 
   return (
     <div className="min-h-screen bg-[#FFFEF9]">
@@ -237,9 +244,13 @@ export default function Gallery() {
                       backgroundImage: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23000000" fill-opacity="1"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")'
                     }}></div>
                     
-                    <span className="text-[#5C5C5C] text-sm tracking-[0.2em] uppercase font-light">
-                      Image {image.id}
-                    </span>
+                    {image.src && (image.src.startsWith('http') || image.src.startsWith('/')) ? (
+                      <img src={image.src} alt={image.alt} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-[#5C5C5C] text-sm tracking-[0.2em] uppercase font-light">
+                        {image.title || `Image ${image.id}`}
+                      </span>
+                    )}
                   </div>
                   
                   {/* Overlay subtil */}
@@ -320,9 +331,13 @@ export default function Gallery() {
                   }}></div>
                   
                   <div className="relative">
-                    <span className="text-[#5C5C5C] text-lg tracking-[0.2em] uppercase font-light">
-                      Image {selectedImage}
-                    </span>
+                    {selectedImageData?.src && (selectedImageData.src.startsWith('http') || selectedImageData.src.startsWith('/')) ? (
+                      <img src={selectedImageData.src} alt={selectedImageData.alt} className="max-w-full max-h-full object-contain" />
+                    ) : (
+                      <span className="text-[#5C5C5C] text-lg tracking-[0.2em] uppercase font-light">
+                        {selectedImageData?.title || `Image ${selectedImage}`}
+                      </span>
+                    )}
                   </div>
                 </div>
                 
@@ -349,7 +364,7 @@ export default function Gallery() {
                   <div className="pt-8 border-t border-[#E5E5E5]">
                     <div className="flex items-center justify-between text-[#5C5C5C] text-xs tracking-[0.2em] uppercase font-light">
                       <span>Portfolio Amarea</span>
-                      <span>{selectedImage}/{galleryImages.length}</span>
+                      <span>{filteredImages.findIndex(img => img.id === selectedImage) + 1}/{filteredImages.length}</span>
                     </div>
                   </div>
                 </div>

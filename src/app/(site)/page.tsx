@@ -4,8 +4,54 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Heart, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useEffect, useState } from 'react';
+import { fetchServices, fetchTestimonials } from '@/lib/api';
+import { getPageContent } from '@/lib/page-content';
 
 export default function Home() {
+  const [services, setServices] = useState<any[]>([]);
+  const [testimonials, setTestimonials] = useState<any[]>([]);
+  const [content, setContent] = useState<any>({});
+
+  useEffect(() => {
+    const loadData = async () => {
+      const [servicesData, testimonialsData, contentData] = await Promise.all([
+        fetchServices(),
+        fetchTestimonials(),
+        getPageContent('home')
+      ]);
+      setServices(servicesData);
+      setTestimonials(testimonialsData);
+      setContent(contentData);
+    };
+    loadData();
+  }, []);
+
+  // Données par défaut si l'API n'est pas disponible
+  const defaultServices = [
+    {
+      number: "01",
+      title: "Organisation Complète",
+      description: "De la vision initiale à l'exécution finale, nous orchestrons chaque aspect avec une précision horlogère et une sensibilité artistique.",
+    },
+    {
+      number: "02",
+      title: "Direction Artistique",
+      description: "Création d'une identité visuelle cohérente et raffinée qui reflète votre personnalité et sublime votre histoire d'amour.",
+    },
+    {
+      number: "03",
+      title: "Coordination Jour J",
+      description: "Une présence discrète et efficace pour que vous viviez pleinement votre journée pendant que nous veillons à la perfection.",
+    }
+  ];
+
+  const displayServices = services.length > 0 ? services : defaultServices;
+  const featuredTestimonial = testimonials.find(t => t.featured) || testimonials[0] || {
+    text: "Amarea a transformé notre mariage en un moment absolument magique. Chaque détail était parfait, au-delà de nos rêves les plus fous.",
+    author: "Sophie & Thomas"
+  };
+
   return (
     <div className="min-h-screen bg-[#FFFEF9]">
       {/* Hero Section - Élégance minimaliste avec typographie forte */}
@@ -60,15 +106,15 @@ export default function Home() {
               <div className="flex items-center justify-center gap-4 mb-8">
                 <div className="h-px w-16 bg-[#C9A96E]"></div>
                 <span className="text-[#C9A96E] text-sm tracking-[0.3em] font-light uppercase">
-                  Wedding Planner
+                  {content['home.subtitle'] || 'Wedding Planner'}
                 </span>
                 <div className="h-px w-16 bg-[#C9A96E]"></div>
               </div>
 
               <h1 className="font-serif text-7xl md:text-8xl lg:text-9xl text-[#2C2C2C] tracking-tight leading-[0.9]">
-                <span className="block font-light italic">L'art de</span>
-                <span className="block font-normal">célébrer</span>
-                <span className="block font-light">l'amour</span>
+                <span className="block font-light italic">{content['home.title1'] || 'L\'art de'}</span>
+                <span className="block font-normal">{content['home.title2'] || 'célébrer'}</span>
+                <span className="block font-light">{content['home.title3'] || 'l\'amour'}</span>
               </h1>
             </motion.div>
 
@@ -79,8 +125,7 @@ export default function Home() {
               transition={{ duration: 0.8, delay: 0.8 }}
               className="text-[#5C5C5C] text-lg md:text-xl max-w-2xl mx-auto leading-relaxed font-light tracking-wide"
             >
-              Créateur de mariages sur-mesure où chaque détail raconte votre histoire 
-              avec raffinement et authenticité
+              {content['home.description'] || 'Créateur de mariages sur-mesure où chaque détail raconte votre histoire avec raffinement et authenticité'}
             </motion.p>
 
             {/* CTA discret et élégant */}
@@ -95,7 +140,7 @@ export default function Home() {
                   <div className="absolute inset-0 bg-[#2C2C2C] transition-transform duration-500 group-hover:scale-105"></div>
                   <div className="absolute inset-0 bg-[#C9A96E] transform translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                   <span className="relative flex items-center gap-3 text-[#FFFEF9] font-light tracking-wider text-sm uppercase">
-                    Découvrir nos services
+                    {content['home.cta1'] || 'Découvrir nos services'}
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </span>
                 </button>
@@ -104,7 +149,7 @@ export default function Home() {
               <Link href="/gallery">
                 <button className="group px-10 py-4 border border-[#2C2C2C] hover:border-[#C9A96E] transition-colors duration-300">
                   <span className="flex items-center gap-3 text-[#2C2C2C] group-hover:text-[#C9A96E] font-light tracking-wider text-sm uppercase transition-colors">
-                    Nos réalisations
+                    {content['home.cta2'] || 'Nos réalisations'}
                     <Heart className="w-4 h-4" />
                   </span>
                 </button>
@@ -142,33 +187,16 @@ export default function Home() {
             </div>
             
             <h2 className="font-serif text-5xl md:text-6xl text-[#2C2C2C] font-light mb-6">
-              Une expérience <span className="italic">d'exception</span>
+              {content['home.services.title'] || 'Une expérience d\'exception'}
             </h2>
             <p className="text-[#5C5C5C] text-lg max-w-2xl mx-auto font-light leading-relaxed">
-              Chaque mariage est unique. Notre approche sur-mesure garantit 
-              une attention méticuleuse à chaque détail.
+              {content['home.services.subtitle'] || 'Chaque mariage est unique. Notre approche sur-mesure garantit une attention méticuleuse à chaque détail.'}
             </p>
           </motion.div>
 
           {/* Grille de services avec séparateurs */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border-t border-l border-[#E5E5E5]">
-            {[
-              {
-                number: "01",
-                title: "Organisation Complète",
-                description: "De la vision initiale à l'exécution finale, nous orchestrons chaque aspect avec une précision horlogère et une sensibilité artistique.",
-              },
-              {
-                number: "02",
-                title: "Direction Artistique",
-                description: "Création d'une identité visuelle cohérente et raffinée qui reflète votre personnalité et sublime votre histoire d'amour.",
-              },
-              {
-                number: "03",
-                title: "Coordination Jour J",
-                description: "Une présence discrète et efficace pour que vous viviez pleinement votre journée pendant que nous veillons à la perfection.",
-              }
-            ].map((service, index) => (
+            {displayServices.map((service, index) => (
               <motion.div
                 key={service.number}
                 initial={{ opacity: 0, y: 20 }}
@@ -217,14 +245,13 @@ export default function Home() {
             className="space-y-12"
           >
             <p className="font-serif text-3xl md:text-4xl text-[#2C2C2C] leading-relaxed font-light italic">
-              Amarea a transformé notre mariage en un moment absolument magique. 
-              Chaque détail était parfait, au-delà de nos rêves les plus fous.
+              {featuredTestimonial.text}
             </p>
             
             <div className="flex items-center justify-center gap-4">
               <div className="h-px w-8 bg-[#C9A96E]"></div>
               <span className="text-[#5C5C5C] text-sm tracking-[0.2em] uppercase font-light">
-                Sophie & Thomas
+                {featuredTestimonial.author}
               </span>
               <div className="h-px w-8 bg-[#C9A96E]"></div>
             </div>
@@ -257,20 +284,18 @@ export default function Home() {
             </div>
 
             <h2 className="font-serif text-5xl md:text-6xl text-[#FFFEF9] font-light mb-8">
-              Commençons à écrire
-              <span className="block italic mt-2">votre histoire</span>
+              {content['home.cta.title'] || 'Commençons à écrire votre histoire'}
             </h2>
             
             <p className="text-[#D4D4D4] text-lg mb-12 max-w-2xl mx-auto font-light leading-relaxed">
-              Prenez rendez-vous pour une première rencontre où nous découvrirons 
-              ensemble votre vision et comment la concrétiser.
+              {content['home.cta.description'] || 'Prenez rendez-vous pour une première rencontre où nous découvrirons ensemble votre vision et comment la concrétiser.'}
             </p>
             
             <Link href="/contact">
               <button className="group relative px-12 py-5 overflow-hidden border border-[#C9A96E]">
                 <div className="absolute inset-0 bg-[#C9A96E] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
                 <span className="relative flex items-center gap-3 text-[#FFFEF9] group-hover:text-[#2C2C2C] font-light tracking-wider text-sm uppercase transition-colors">
-                  Prendre rendez-vous
+                  {content['home.cta.button'] || 'Prendre rendez-vous'}
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </span>
               </button>

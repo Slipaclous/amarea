@@ -1,9 +1,10 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Mail, Phone, MapPin, Clock, Send, CheckCircle } from 'lucide-react';
 import Image from 'next/image';
+import { fetchContactInfo, submitContact } from '@/lib/api';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -16,6 +17,11 @@ export default function Contact() {
     message: ''
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [contactInfo, setContactInfo] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchContactInfo().then(setContactInfo);
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
@@ -24,49 +30,64 @@ export default function Contact() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitted(true);
-    setTimeout(() => {
-      setIsSubmitted(false);
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        weddingDate: '',
-        guestCount: '',
-        budget: '',
-        message: ''
-      });
-    }, 3000);
+    try {
+      await submitContact(formData);
+      setIsSubmitted(true);
+      setTimeout(() => {
+        setIsSubmitted(false);
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          weddingDate: '',
+          guestCount: '',
+          budget: '',
+          message: ''
+        });
+      }, 3000);
+    } catch (error) {
+      console.error('Erreur envoi:', error);
+      alert('Erreur lors de l\'envoi du message');
+    }
   };
 
-  const contactInfo = [
+  const iconMap: { [key: string]: JSX.Element } = {
+    Phone: <Phone className="w-5 h-5" />,
+    Mail: <Mail className="w-5 h-5" />,
+    MapPin: <MapPin className="w-5 h-5" />,
+    Clock: <Clock className="w-5 h-5" />,
+  };
+
+  const defaultContactInfo = [
     {
-      icon: <Phone className="w-5 h-5" />,
+      type: "Phone",
       title: "Téléphone",
       details: "+33 1 23 45 67 89",
       description: "Disponible du lundi au vendredi"
     },
     {
-      icon: <Mail className="w-5 h-5" />,
+      type: "Mail",
       title: "Email",
       details: "contact@amarea.com",
       description: "Réponse sous 24h"
     },
     {
-      icon: <MapPin className="w-5 h-5" />,
+      type: "MapPin",
       title: "Adresse",
       details: "123 Avenue des Champs-Élysées",
       description: "75008 Paris, France"
     },
     {
-      icon: <Clock className="w-5 h-5" />,
+      type: "Clock",
       title: "Horaires",
       details: "9h - 18h",
       description: "Du lundi au vendredi"
     }
   ];
+
+  const displayContactInfo = contactInfo.length > 0 ? contactInfo : defaultContactInfo;
 
   return (
     <div className="min-h-screen bg-[#FFFEF9]">
@@ -146,9 +167,9 @@ export default function Contact() {
       <section className="py-20 bg-[#FFFEF9] border-b border-[#E5E5E5]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 border-t border-l border-[#E5E5E5]">
-            {contactInfo.map((info, index) => (
+            {displayContactInfo.map((info, index) => (
               <motion.div
-                key={info.title}
+                key={info.title || index}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
@@ -160,7 +181,7 @@ export default function Contact() {
                 
                 <div className="space-y-4">
                   <div className="text-[#C9A96E]">
-                    {info.icon}
+                    {iconMap[info.type] || <Phone className="w-5 h-5" />}
                   </div>
                   
                   <div className="space-y-2">
