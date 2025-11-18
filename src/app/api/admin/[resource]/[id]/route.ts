@@ -19,10 +19,12 @@ export async function PUT(
   request: NextRequest,
   context: any
 ) {
+  let resolvedParams: Params | undefined; // Declare outside try block
+  
   try {
     requireAuth(request);
 
-    const resolvedParams = await Promise.resolve(
+    resolvedParams = await Promise.resolve(
       context?.params as Params | Promise<Params>
     );
     const resource = resourceMap[resolvedParams.resource];
@@ -47,7 +49,7 @@ export async function PUT(
         { status: 401 }
       );
     }
-    console.error(`Erreur PUT ${resolvedParams.resource}:`, error);
+    console.error(`Erreur PUT ${resolvedParams?.resource || 'unknown'}:`, error);
     return NextResponse.json(
       { error: error.message || 'Erreur serveur' },
       { status: 500 }
@@ -59,10 +61,12 @@ export async function DELETE(
   request: NextRequest,
   context: any
 ) {
+  let resolvedParams: Params | undefined; // Declare outside try block
+  
   try {
     requireAuth(request);
 
-    const resolvedParams = await Promise.resolve(
+    resolvedParams = await Promise.resolve(
       context?.params as Params | Promise<Params>
     );
     const resource = resourceMap[resolvedParams.resource];
@@ -83,13 +87,10 @@ export async function DELETE(
         { status: 401 }
       );
     }
-    console.error(`Erreur DELETE ${resolvedParams.resource}:`, error);
+    console.error(`Erreur DELETE ${resolvedParams?.resource || 'unknown'}:`, error);
     return NextResponse.json(
       { error: error.message || 'Erreur serveur' },
       { status: 500 }
     );
   }
 }
-
-
-
