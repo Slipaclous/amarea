@@ -4,9 +4,11 @@ import { requireAuth } from '@/lib/auth';
 
 const prisma = new PrismaClient();
 
+type Params = { key: string };
+
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ key: string }> | { key: string } }
+  context: any
 ) {
   try {
     requireAuth(request);
@@ -15,7 +17,9 @@ export async function PUT(
     const { key: keyFromBody, value, type = 'text' } = body;
     
     // Gérer les deux formats de params (Next.js 13+ peut retourner une Promise)
-    const resolvedParams = params instanceof Promise ? await params : params;
+    const resolvedParams = await Promise.resolve(
+      context?.params as Params | Promise<Params>
+    );
     const rawKeyFromUrl = resolvedParams?.key;
     
     // Utiliser la clé du body en priorité, sinon celle de l'URL
@@ -74,10 +78,12 @@ export async function PUT(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ key: string }> | { key: string } }
+  context: any
 ) {
   try {
-    const resolvedParams = params instanceof Promise ? await params : params;
+    const resolvedParams = await Promise.resolve(
+      context?.params as Params | Promise<Params>
+    );
     const rawKey = resolvedParams.key;
     
     let decodedKey = rawKey;
