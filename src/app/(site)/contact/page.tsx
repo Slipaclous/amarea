@@ -53,7 +53,7 @@ export default function Contact() {
     }
   };
 
-  const iconMap: { [key: string]: JSX.Element } = {
+  const iconMap: { [key: string]: React.ReactElement } = {
     Phone: <Phone className="w-5 h-5" />,
     Mail: <Mail className="w-5 h-5" />,
     MapPin: <MapPin className="w-5 h-5" />,
