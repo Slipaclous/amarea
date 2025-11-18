@@ -40,7 +40,7 @@ export default function About() {
 
   const displayStats = stats.length > 0 ? stats : defaultStats;
 
-  const iconMap = {
+  const iconMap: { [key: string]: React.ReactElement } = {
     Heart: <Heart className="w-6 h-6" />,
     Award: <Award className="w-6 h-6" />,
     Users: <Users className="w-6 h-6" />,
