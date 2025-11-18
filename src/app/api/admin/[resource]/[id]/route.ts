@@ -17,12 +17,14 @@ type Params = { resource: string; id: string };
 
 export async function PUT(
   request: NextRequest,
-  contextPromise: Promise<{ params: Params }>
+  context: { params: Params }
 ) {
   try {
     requireAuth(request);
 
-    const { params: resolvedParams } = await contextPromise;
+    const resolvedParams = await Promise.resolve(
+      context.params as Params | Promise<Params>
+    );
     const resource = resourceMap[resolvedParams.resource];
     if (!resource) {
       return NextResponse.json(
@@ -55,12 +57,14 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  contextPromise: Promise<{ params: Params }>
+  context: { params: Params }
 ) {
   try {
     requireAuth(request);
 
-    const { params: resolvedParams } = await contextPromise;
+    const resolvedParams = await Promise.resolve(
+      context.params as Params | Promise<Params>
+    );
     const resource = resourceMap[resolvedParams.resource];
     if (!resource) {
       return NextResponse.json(
