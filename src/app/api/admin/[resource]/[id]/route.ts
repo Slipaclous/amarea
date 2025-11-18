@@ -17,13 +17,13 @@ type Params = { resource: string; id: string };
 
 export async function PUT(
   request: NextRequest,
-  context: { params: Params }
+  context: any
 ) {
   try {
     requireAuth(request);
 
     const resolvedParams = await Promise.resolve(
-      context.params as Params | Promise<Params>
+      context?.params as Params | Promise<Params>
     );
     const resource = resourceMap[resolvedParams.resource];
     if (!resource) {
@@ -57,13 +57,13 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  context: { params: Params }
+  context: any
 ) {
   try {
     requireAuth(request);
 
     const resolvedParams = await Promise.resolve(
-      context.params as Params | Promise<Params>
+      context?.params as Params | Promise<Params>
     );
     const resource = resourceMap[resolvedParams.resource];
     if (!resource) {
