@@ -4,13 +4,19 @@ import { requireAuth } from '@/lib/auth';
 
 const prisma = new PrismaClient();
 
+type Params = { id: string };
+
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: any
 ) {
   try {
     requireAuth(request);
-    
+
+    const params = await Promise.resolve(
+      context?.params as Params | Promise<Params>
+    );
+
     await prisma.contactMessage.delete({ where: { id: params.id } });
     
     return NextResponse.json({ success: true });

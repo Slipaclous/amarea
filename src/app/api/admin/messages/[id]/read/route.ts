@@ -4,13 +4,19 @@ import { requireAuth } from '@/lib/auth';
 
 const prisma = new PrismaClient();
 
+type Params = { id: string };
+
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: any
 ) {
   try {
     requireAuth(request);
-    
+
+    const params = await Promise.resolve(
+      context?.params as Params | Promise<Params>
+    );
+
     const message = await prisma.contactMessage.update({
       where: { id: params.id },
       data: { read: true }
