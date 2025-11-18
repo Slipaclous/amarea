@@ -55,7 +55,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#FFFEF9]">
       {/* Hero Section - Élégance minimaliste avec typographie forte */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-60">
         {/* Texture papier subtile en fond */}
         <div className="absolute inset-0 bg-[#FFFEF9]">
           <div className="absolute inset-0 opacity-[0.03]" style={{
