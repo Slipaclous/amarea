@@ -16,6 +16,7 @@
   "dependencies": {
     "@next/font": "^14.2.15",
     "@prisma/client": "^5.20.0",
+    "@supabase/supabase-js": "^2.83.0",
     "autoprefixer": "^10.4.21",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",

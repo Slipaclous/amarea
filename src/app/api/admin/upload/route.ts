@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import path from 'path';
-import { promises as fs } from 'fs';
 import sharp from 'sharp';
 import { requireAuth } from '@/lib/auth';
+import { createClient } from '@supabase/supabase-js';
 
 const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4 Mo
 const SUPPORTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const UPLOAD_DIR = path.join(process.cwd(), 'public', 'images');
+const BUCKET_NAME = 'images';
+
+// Initialiser Supabase avec la clé de service (serveur-side)
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+);
 
 function sanitizeFilename(fileName: string) {
   return fileName
@@ -15,10 +20,6 @@ function sanitizeFilename(fileName: string) {
     .replace(/[^a-z0-9.-]/g, '')
     .replace(/-+/g, '-')
     .replace(/^-+|-+$/g, '') || 'image';
-}
-
-async function ensureUploadDir() {
-  await fs.mkdir(UPLOAD_DIR, { recursive: true });
 }
 
 function getExtension(file: File) {
@@ -55,16 +56,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await ensureUploadDir();
-
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
     const extension = getExtension(file);
     const baseName = sanitizeFilename(file.name.replace(/\.[^.]+$/, ''));
     const fileName = `${Date.now()}-${baseName}.${extension}`;
-    const outputPath = path.join(UPLOAD_DIR, fileName);
 
+    // Traiter l'image avec Sharp
     let transformer = sharp(buffer).rotate();
     const metadata = await transformer.metadata();
 
@@ -88,10 +87,29 @@ export async function POST(request: NextRequest) {
         break;
     }
 
-    await fs.writeFile(outputPath, finalBuffer);
+    // Uploader vers Supabase Storage
+    const { error } = await supabase.storage
+      .from(BUCKET_NAME)
+      .upload(fileName, finalBuffer, {
+        contentType: file.type,
+        upsert: false,
+      });
+
+    if (error) {
+      console.error('[API][admin][upload] Erreur Supabase:', error);
+      return NextResponse.json(
+        { error: `Erreur upload: ${error.message}` },
+        { status: 500 }
+      );
+    }
+
+    // Récupérer l'URL publique
+    const { data: publicData } = supabase.storage
+      .from(BUCKET_NAME)
+      .getPublicUrl(fileName);
 
     return NextResponse.json({
-      url: `/images/${fileName}`,
+      url: publicData.publicUrl,
       size: finalBuffer.length,
       originalName: file.name,
     });
